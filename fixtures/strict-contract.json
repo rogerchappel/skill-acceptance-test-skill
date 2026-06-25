@@ -1,0 +1,17 @@
+{
+  "requiredSections": [
+    "When To Use",
+    "Required Tools Or Inputs",
+    "Side-Effect Boundaries",
+    "Approval Requirements",
+    "Examples",
+    "Validation Workflow"
+  ],
+  "requiredPhrases": [
+    "read-only",
+    "must not execute",
+    "human-approved",
+    "separate"
+  ],
+  "minimumFixtures": 3
+}
