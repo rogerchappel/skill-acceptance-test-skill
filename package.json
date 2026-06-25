@@ -1,0 +1,28 @@
+{
+  "name": "skill-acceptance-test-skill",
+  "version": "0.1.0",
+  "description": "Local-first acceptance checks for reusable agent skills.",
+  "type": "module",
+  "bin": {
+    "skill-acceptance-test": "./src/cli.js"
+  },
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "scripts": {
+    "test": "node --test",
+    "check": "node --check src/cli.js && node --check src/index.js",
+    "smoke": "node src/cli.js --skill fixtures/sample-skill/SKILL.md --contract fixtures/contract.json --fixtures fixtures/sample-skill/fixtures --format markdown",
+    "validate": "bash scripts/validate.sh"
+  },
+  "keywords": [
+    "agent-skill",
+    "acceptance-test",
+    "fixtures",
+    "release-readiness"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  }
+}
