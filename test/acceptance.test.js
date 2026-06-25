@@ -53,3 +53,14 @@ test("cli returns json output", () => {
 
   assert.equal(JSON.parse(output).status, "pass");
 });
+
+test("strict contracts can raise fixture thresholds", () => {
+  const result = evaluateSkill({
+    skillText: readTextFile("fixtures/sample-skill/SKILL.md"),
+    contract: readJsonFile("fixtures/strict-contract.json"),
+    fixtureDir: "fixtures/sample-skill/fixtures"
+  });
+
+  assert.equal(result.status, "fail");
+  assert.match(result.findings.find((finding) => finding.id === "fixtures:minimum").message, /minimum is 3/);
+});
