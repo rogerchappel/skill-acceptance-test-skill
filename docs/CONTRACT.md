@@ -17,3 +17,5 @@
 | `minimumFixtures` | number | Minimum number of files expected in the fixture directory. |
 
 The contract should be stored with the repo so release checks are reproducible.
+
+Use `fixtures/strict-contract.json` when reviewers want an intentionally stricter fixture threshold.
