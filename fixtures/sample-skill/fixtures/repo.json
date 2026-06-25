@@ -1,0 +1,4 @@
+{
+  "name": "example-repo",
+  "checks": ["tests", "readme", "license"]
+}
