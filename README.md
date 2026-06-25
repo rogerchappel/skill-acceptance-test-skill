@@ -17,6 +17,8 @@ node src/cli.js --skill fixtures/sample-skill/SKILL.md --contract fixtures/contr
 - The fixture directory contains enough examples for the contract.
 - Verification commands are documented as evidence.
 
+See [docs/CONTRACT.md](docs/CONTRACT.md) for contract fields and [docs/API.md](docs/API.md) for library usage.
+
 ## Safety Notes
 
 This tool reads files and directories only. It does not execute commands found in skill docs, because command execution should remain an explicit caller decision.
