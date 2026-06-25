@@ -1,0 +1,68 @@
+{
+  "status": "pass",
+  "summary": {
+    "pass": 11,
+    "fail": 0
+  },
+  "fixtureFiles": [
+    "fixtures/sample-skill/fixtures/company.json",
+    "fixtures/sample-skill/fixtures/repo.json"
+  ],
+  "findings": [
+    {
+      "id": "section:when-to-use",
+      "status": "pass",
+      "message": "Section present: When To Use"
+    },
+    {
+      "id": "section:required-tools-or-inputs",
+      "status": "pass",
+      "message": "Section present: Required Tools Or Inputs"
+    },
+    {
+      "id": "section:side-effect-boundaries",
+      "status": "pass",
+      "message": "Section present: Side-Effect Boundaries"
+    },
+    {
+      "id": "section:approval-requirements",
+      "status": "pass",
+      "message": "Section present: Approval Requirements"
+    },
+    {
+      "id": "section:examples",
+      "status": "pass",
+      "message": "Section present: Examples"
+    },
+    {
+      "id": "section:validation-workflow",
+      "status": "pass",
+      "message": "Section present: Validation Workflow"
+    },
+    {
+      "id": "phrase:read-only",
+      "status": "pass",
+      "message": "Boundary phrase found: read-only"
+    },
+    {
+      "id": "phrase:must-not-execute",
+      "status": "pass",
+      "message": "Boundary phrase found: must not execute"
+    },
+    {
+      "id": "phrase:human-approved",
+      "status": "pass",
+      "message": "Boundary phrase found: human-approved"
+    },
+    {
+      "id": "fixtures:minimum",
+      "status": "pass",
+      "message": "2 fixture file(s) found; minimum is 2."
+    },
+    {
+      "id": "evidence:verification-commands",
+      "status": "pass",
+      "message": "Verification command evidence found."
+    }
+  ]
+}
