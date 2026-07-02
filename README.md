@@ -22,3 +22,16 @@ See [docs/CONTRACT.md](docs/CONTRACT.md) for contract fields and [docs/API.md](d
 ## Safety Notes
 
 This tool reads files and directories only. It does not execute commands found in skill docs, because command execution should remain an explicit caller decision.
+
+## Install
+
+```bash
+npm install skill-acceptance-test-skill
+npx skill-acceptance-test --help
+```
+
+## Release Check
+
+```bash
+npm run release:check
+```
