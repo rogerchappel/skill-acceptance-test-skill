@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import { realpathSync } from "node:fs";
+import { pathToFileURL } from "node:url";
 import { evaluateSkill, readJsonFile, readTextFile, renderMarkdown } from "./index.js";
 
 function parseArgs(argv) {
@@ -41,7 +43,10 @@ export function run(argv = process.argv.slice(2)) {
   return args.format === "json" ? `${JSON.stringify(result, null, 2)}\n` : renderMarkdown(result);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+const invokedAsExecutable =
+  process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href;
+
+if (invokedAsExecutable) {
   try {
     process.stdout.write(run());
   } catch (error) {
