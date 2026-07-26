@@ -25,9 +25,19 @@ This tool reads files and directories only. It does not execute commands found i
 
 ## Install
 
+The package is not published to the npm registry. Install dependencies and run
+the CLI from a checked-out copy of this repository:
+
 ```bash
-npm install skill-acceptance-test-skill
-npx skill-acceptance-test --help
+git clone https://github.com/rogerchappel/skill-acceptance-test-skill.git
+cd skill-acceptance-test-skill
+npm install
+npx --no-install skill-acceptance-test --help
+npx --no-install skill-acceptance-test \
+  --skill fixtures/sample-skill/SKILL.md \
+  --contract fixtures/contract.json \
+  --fixtures fixtures/sample-skill/fixtures \
+  --format json
 ```
 
 ## Release Check
