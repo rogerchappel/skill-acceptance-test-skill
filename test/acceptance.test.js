@@ -72,3 +72,64 @@ test("strict contracts can raise fixture thresholds", () => {
   assert.equal(result.status, "fail");
   assert.match(result.findings.find((finding) => finding.id === "fixtures:minimum").message, /minimum is 3/);
 });
+
+test("rejects contract list fields that are not arrays of strings", () => {
+  for (const invalidContract of [
+    { requiredSections: "When To Use" },
+    { requiredSections: ["When To Use", 42] },
+    { requiredPhrases: { phrase: "read-only" } },
+    { requiredPhrases: ["read-only", null] }
+  ]) {
+    assert.throws(
+      () => evaluateSkill({ skillText: "", contract: invalidContract }),
+      /Invalid contract: (requiredSections|requiredPhrases) must be an array of strings\./
+    );
+  }
+});
+
+test("rejects invalid minimumFixtures values without numeric coercion", () => {
+  for (const minimumFixtures of ["2", -1, 1.5, Number.NaN, Number.POSITIVE_INFINITY]) {
+    assert.throws(
+      () => evaluateSkill({ skillText: "", contract: { minimumFixtures } }),
+      /Invalid contract: minimumFixtures must be a non-negative integer\./
+    );
+  }
+});
+
+test("cli reports malformed contracts with an actionable error", () => {
+  assert.throws(
+    () =>
+      run([
+        "--skill",
+        "fixtures/sample-skill/SKILL.md",
+        "--contract",
+        "fixtures/invalid-contract.json",
+        "--fixtures",
+        "fixtures/sample-skill/fixtures"
+      ]),
+    /Invalid contract: requiredSections must be an array of strings\./
+  );
+});
+
+test("escapes markdown table delimiters and newlines without changing JSON findings", () => {
+  const result = {
+    status: "fail",
+    summary: { pass: 0, fail: 1 },
+    fixtureFiles: [],
+    findings: [
+      {
+        id: "phrase:a|b",
+        status: "fail",
+        message: "Missing a | b\ncheck the contract"
+      }
+    ]
+  };
+
+  assert.match(
+    renderMarkdown(result),
+    /\| phrase:a\\\|b \| fail \| Missing a \\\| b<br>check the contract \|/
+  );
+  assert.equal(result.findings[0].id, "phrase:a|b");
+  assert.equal(result.findings[0].message, "Missing a | b\ncheck the contract");
+  assert.equal(JSON.parse(JSON.stringify(result)).findings[0].message, "Missing a | b\ncheck the contract");
+});

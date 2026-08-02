@@ -10,6 +10,7 @@ export function readTextFile(filePath) {
 }
 
 export function evaluateSkill({ skillText, contract, fixtureDir }) {
+  validateContract(contract);
   const findings = [];
   const requiredSections = contract.requiredSections ?? [];
 
@@ -72,11 +73,37 @@ export function renderMarkdown(result) {
   ];
 
   for (const finding of result.findings) {
-    lines.push(`| ${finding.id} | ${finding.status} | ${finding.message} |`);
+    lines.push(
+      `| ${escapeMarkdownCell(finding.id)} | ${escapeMarkdownCell(finding.status)} | ${escapeMarkdownCell(finding.message)} |`
+    );
   }
 
   lines.push("", `Summary: ${result.summary.pass} passed, ${result.summary.fail} failed.`);
   return `${lines.join("\n")}\n`;
+}
+
+function validateContract(contract) {
+  if (!contract || typeof contract !== "object" || Array.isArray(contract)) {
+    throw new TypeError("Invalid contract: expected a JSON object.");
+  }
+
+  for (const field of ["requiredSections", "requiredPhrases"]) {
+    const value = contract[field];
+    if (value !== undefined && (!Array.isArray(value) || value.some((item) => typeof item !== "string"))) {
+      throw new TypeError(`Invalid contract: ${field} must be an array of strings.`);
+    }
+  }
+
+  if (
+    contract.minimumFixtures !== undefined &&
+    (!Number.isInteger(contract.minimumFixtures) || contract.minimumFixtures < 0)
+  ) {
+    throw new TypeError("Invalid contract: minimumFixtures must be a non-negative integer.");
+  }
+}
+
+function escapeMarkdownCell(value) {
+  return String(value).replace(/\|/g, "\\|").replace(/\r?\n|\r/g, "<br>");
 }
 
 function hasHeading(text, heading) {
