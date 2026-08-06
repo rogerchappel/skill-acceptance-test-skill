@@ -14,4 +14,13 @@ Add representative fixtures that cover happy path, edge case, and blocked or fai
 
 ## Missing Verification Evidence
 
-Document the commands a reviewer should run. This tool records the presence of command evidence but does not run those commands itself.
+Document a supported command (`npm test`, `npm run check`, `npm run smoke`, or
+`bash scripts/validate.sh`) as its own command line in a fenced code block. Prose and commented-out
+commands do not count as executable evidence. This tool records the presence of command evidence
+but does not run those commands itself.
+
+## Missing CLI Option Values
+
+Every value-taking option (`--skill`, `--contract`, `--fixtures`, and `--format`) must be followed by
+its value. End-of-command or another option in that position produces an error naming the option
+whose value is missing. `--help` remains available as a standalone option.

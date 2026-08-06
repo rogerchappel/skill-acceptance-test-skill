@@ -40,9 +40,7 @@ export function evaluateSkill({ skillText, contract, fixtureDir }) {
     message: `${fixtureFiles.length} fixture file(s) found; minimum is ${minimumFixtures}.`
   });
 
-  const commandEvidence = extractCodeBlocks(skillText).filter((block) =>
-    /npm test|npm run check|npm run smoke|validate\.sh/.test(block)
-  );
+  const commandEvidence = extractCodeBlocks(skillText).filter(hasVerificationCommand);
   findings.push({
     id: "evidence:verification-commands",
     status: commandEvidence.length > 0 ? "pass" : "fail",
@@ -113,6 +111,12 @@ function hasHeading(text, heading) {
 
 function extractCodeBlocks(text) {
   return [...text.matchAll(/```[\w-]*\n([\s\S]*?)```/g)].map((match) => match[1]);
+}
+
+function hasVerificationCommand(block) {
+  return block.split("\n").some((line) =>
+    /^\s*(?:\$\s*)?(?:npm test|npm run (?:check|smoke)|bash scripts\/validate\.sh)\s*$/.test(line)
+  );
 }
 
 function listFixtureFiles(fixtureDir) {

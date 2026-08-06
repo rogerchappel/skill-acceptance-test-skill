@@ -5,12 +5,19 @@ import { evaluateSkill, readJsonFile, readTextFile, renderMarkdown } from "./ind
 
 function parseArgs(argv) {
   const args = { format: "markdown" };
+  const takeValue = (option, index) => {
+    const value = argv[index + 1];
+    if (value === undefined || value.startsWith("-")) {
+      throw new Error(`${option} requires a value.`);
+    }
+    return value;
+  };
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index];
-    if (token === "--skill") args.skill = argv[++index];
-    else if (token === "--contract") args.contract = argv[++index];
-    else if (token === "--fixtures") args.fixtures = argv[++index];
-    else if (token === "--format") args.format = argv[++index];
+    if (token === "--skill") args.skill = takeValue(token, index++);
+    else if (token === "--contract") args.contract = takeValue(token, index++);
+    else if (token === "--fixtures") args.fixtures = takeValue(token, index++);
+    else if (token === "--format") args.format = takeValue(token, index++);
     else if (token === "--help" || token === "-h") args.help = true;
     else throw new Error(`Unknown argument: ${token}`);
   }
