@@ -36,6 +36,33 @@ test("fails a skill that omits required release evidence", () => {
   assert.ok(result.summary.fail > 0);
 });
 
+test("accepts supported verification commands in executable fenced blocks", () => {
+  for (const command of ["npm test", "npm run check", "npm run smoke", "bash scripts/validate.sh"]) {
+    const result = evaluateSkill({
+      skillText: `# Verification\n\n\`\`\`bash\n${command}\n\`\`\``,
+      contract: { minimumFixtures: 0 }
+    });
+
+    assert.equal(result.findings.find((finding) => finding.id === "evidence:verification-commands").status, "pass");
+  }
+});
+
+test("rejects prose and comments that only mention verification commands", () => {
+  for (const block of [
+    "Documentation should mention npm test, but there is no command here.",
+    "# npm run check",
+    "// npm run smoke",
+    "echo 'Run validate.sh before release'"
+  ]) {
+    const result = evaluateSkill({
+      skillText: `# Verification\n\n\`\`\`text\n${block}\n\`\`\``,
+      contract: { minimumFixtures: 0 }
+    });
+
+    assert.equal(result.findings.find((finding) => finding.id === "evidence:verification-commands").status, "fail");
+  }
+});
+
 test("renders markdown acceptance evidence", () => {
   const result = evaluateSkill({
     skillText: readTextFile("fixtures/sample-skill/SKILL.md"),
@@ -60,6 +87,30 @@ test("cli returns json output", () => {
   ]);
 
   assert.equal(JSON.parse(output).status, "pass");
+});
+
+test("cli names options whose values are missing", () => {
+  for (const option of ["--skill", "--contract", "--fixtures", "--format"]) {
+    assert.throws(() => run([option]), new RegExp(`${option} requires a value\\.`));
+    assert.throws(() => run([option, "--help"]), new RegExp(`${option} requires a value\\.`));
+  }
+});
+
+test("cli preserves valid help and markdown behavior", () => {
+  assert.match(run(["--help"]), /^Usage: skill-acceptance-test/);
+  assert.match(
+    run([
+      "--skill",
+      "fixtures/sample-skill/SKILL.md",
+      "--contract",
+      "fixtures/contract.json",
+      "--fixtures",
+      "fixtures/sample-skill/fixtures",
+      "--format",
+      "markdown"
+    ]),
+    /^# Skill Acceptance Report/
+  );
 });
 
 test("strict contracts can raise fixture thresholds", () => {
