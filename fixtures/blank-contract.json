@@ -1,0 +1,5 @@
+{
+  "requiredSections": ["When To Use"],
+  "requiredPhrases": ["read-only", "   "],
+  "minimumFixtures": 0
+}
