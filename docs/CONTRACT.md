@@ -19,7 +19,8 @@
 The contract should be stored with the repo so release checks are reproducible.
 
 Contracts are validated before any acceptance checks run. The contract must be a JSON object;
-`requiredSections` and `requiredPhrases`, when present, must contain only strings; and
+`requiredSections` and `requiredPhrases`, when present, must contain only non-empty strings.
+Empty or whitespace-only entries are invalid. In addition,
 `minimumFixtures`, when present, must be a non-negative integer. Invalid contracts stop the CLI
 with exit code `1` and an `Invalid contract: ...` error instead of producing a report.
 

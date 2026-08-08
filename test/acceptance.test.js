@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { evaluateSkill, readJsonFile, readTextFile, renderMarkdown } from "../src/index.js";
 import { run } from "../src/cli.js";
@@ -184,7 +185,21 @@ test("rejects contract list fields that are not arrays of strings", () => {
   ]) {
     assert.throws(
       () => evaluateSkill({ skillText: "", contract: invalidContract }),
-      /Invalid contract: (requiredSections|requiredPhrases) must be an array of strings\./
+      /Invalid contract: (requiredSections|requiredPhrases) must be an array of non-empty strings\./
+    );
+  }
+});
+
+test("rejects empty and whitespace-only contract list entries", () => {
+  for (const invalidContract of [
+    { requiredSections: [""] },
+    { requiredSections: ["When To Use", " \t"] },
+    { requiredPhrases: [""] },
+    { requiredPhrases: ["read-only", "\n"] }
+  ]) {
+    assert.throws(
+      () => evaluateSkill({ skillText: "", contract: invalidContract }),
+      /Invalid contract: (requiredSections|requiredPhrases) must be an array of non-empty strings\./
     );
   }
 });
@@ -209,7 +224,28 @@ test("cli reports malformed contracts with an actionable error", () => {
         "--fixtures",
         "fixtures/sample-skill/fixtures"
       ]),
-    /Invalid contract: requiredSections must be an array of strings\./
+    /Invalid contract: requiredSections must be an array of non-empty strings\./
+  );
+});
+
+test("cli exits with an actionable error for blank contract entries", () => {
+  const result = spawnSync(
+    process.execPath,
+    [
+      "src/cli.js",
+      "--skill", "fixtures/sample-skill/SKILL.md",
+      "--contract", "fixtures/blank-contract.json",
+      "--fixtures", "fixtures/sample-skill/fixtures",
+      "--format", "json"
+    ],
+    { encoding: "utf8" }
+  );
+
+  assert.equal(result.status, 1);
+  assert.equal(result.stdout, "");
+  assert.equal(
+    result.stderr,
+    "Invalid contract: requiredPhrases must be an array of non-empty strings.\n"
   );
 });
 
