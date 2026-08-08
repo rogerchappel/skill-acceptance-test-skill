@@ -24,11 +24,13 @@ export function evaluateSkill({ skillText, contract, fixtureDir }) {
   }
 
   for (const check of contract.requiredPhrases ?? []) {
-    const present = skillText.toLowerCase().includes(check.toLowerCase());
+    const present = hasAffirmativeBoundaryEvidence(skillText, check);
     findings.push({
       id: `phrase:${slug(check)}`,
       status: present ? "pass" : "fail",
-      message: present ? `Boundary phrase found: ${check}` : `Missing boundary phrase: ${check}`
+      message: present
+        ? `Affirmative boundary evidence found: ${check}`
+        : `Missing affirmative boundary evidence: ${check}`
     });
   }
 
@@ -117,6 +119,30 @@ function hasVerificationCommand(block) {
   return block.split("\n").some((line) =>
     /^\s*(?:\$\s*)?(?:npm test|npm run (?:check|smoke)|bash scripts\/validate\.sh)\s*$/.test(line)
   );
+}
+
+function hasAffirmativeBoundaryEvidence(text, phrase) {
+  const phrasePattern = escapeRegExp(phrase);
+  const candidates = text
+    .split(/\r?\n|(?<=[.!?])\s+/)
+    .filter((candidate) => new RegExp(phrasePattern, "i").test(candidate));
+
+  return candidates.some((candidate) => {
+    const normalized = candidate
+      .replace(/^\s{0,3}(?:#{1,6}|[-*+]|\d+[.)])\s+/, "")
+      .trim();
+    const placeholder = /^(?:todo|tbd|fixme|placeholder)\b|\b(?:todo|tbd|fixme|placeholder|goes here|to be (?:added|documented|defined))\b/i;
+    const negatedBefore = new RegExp(
+      `\\b(?:no|not|never|without|lacks?|missing|omit(?:s|ted)?|does not|do not|isn't|is not|cannot|can't|won't|will not)\\b[^.!?\\n]{0,80}\\b${phrasePattern}\\b`,
+      "i"
+    );
+    const negatedAfter = new RegExp(
+      `\\b${phrasePattern}\\b[^.!?\\n]{0,60}\\b(?:is (?:missing|absent|unsupported|unavailable)|isn't (?:present|supported|available)|is not (?:present|supported|available))\\b`,
+      "i"
+    );
+
+    return !placeholder.test(normalized) && !negatedBefore.test(normalized) && !negatedAfter.test(normalized);
+  });
 }
 
 function listFixtureFiles(fixtureDir) {
