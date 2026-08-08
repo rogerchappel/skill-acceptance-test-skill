@@ -10,9 +10,9 @@ Status: pass
 | section:approval-requirements | pass | Section present: Approval Requirements |
 | section:examples | pass | Section present: Examples |
 | section:validation-workflow | pass | Section present: Validation Workflow |
-| phrase:read-only | pass | Boundary phrase found: read-only |
-| phrase:must-not-execute | pass | Boundary phrase found: must not execute |
-| phrase:human-approved | pass | Boundary phrase found: human-approved |
+| phrase:read-only | pass | Affirmative boundary evidence found: read-only |
+| phrase:must-not-execute | pass | Affirmative boundary evidence found: must not execute |
+| phrase:human-approved | pass | Affirmative boundary evidence found: human-approved |
 | fixtures:minimum | pass | 2 fixture file(s) found; minimum is 2. |
 | evidence:verification-commands | pass | Verification command evidence found. |
 

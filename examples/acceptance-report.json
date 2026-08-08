@@ -42,17 +42,17 @@
     {
       "id": "phrase:read-only",
       "status": "pass",
-      "message": "Boundary phrase found: read-only"
+      "message": "Affirmative boundary evidence found: read-only"
     },
     {
       "id": "phrase:must-not-execute",
       "status": "pass",
-      "message": "Boundary phrase found: must not execute"
+      "message": "Affirmative boundary evidence found: must not execute"
     },
     {
       "id": "phrase:human-approved",
       "status": "pass",
-      "message": "Boundary phrase found: human-approved"
+      "message": "Affirmative boundary evidence found: human-approved"
     },
     {
       "id": "fixtures:minimum",
