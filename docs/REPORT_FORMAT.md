@@ -1,5 +1,9 @@
 # Report Format
 
+Phrase findings use stable messages in both JSON and Markdown: `Affirmative boundary evidence
+found: <phrase>` for passes and `Missing affirmative boundary evidence: <phrase>` for failures.
+This makes negated and placeholder mentions actionable without changing finding IDs or ordering.
+
 Reports contain:
 
 - `status`: `pass` or `fail`

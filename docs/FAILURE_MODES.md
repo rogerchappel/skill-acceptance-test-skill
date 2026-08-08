@@ -1,5 +1,12 @@
 # Failure Modes
 
+## Missing affirmative boundary evidence
+
+`requiredPhrases` are evidence checks, not keyword checks. A phrase mentioned only in a negation,
+an absent/missing statement, or a placeholder produces `Missing affirmative boundary evidence:
+<phrase>`. State the actual enforced behavior, such as `Inspection is read-only`, and rerun the
+acceptance report.
+
 ## Missing Sections
 
 Add the missing heading to `SKILL.md` and include enough detail for another agent to apply the workflow.

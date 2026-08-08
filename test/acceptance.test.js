@@ -63,6 +63,54 @@ test("rejects prose and comments that only mention verification commands", () =>
   }
 });
 
+test("requires affirmative evidence for boundary phrases", () => {
+  for (const skillText of [
+    "This workflow is not read-only.",
+    "There is no human-approved step.",
+    "The read-only boundary is missing.",
+    "TODO: document the human-approved boundary.",
+    "The human-approved boundary is to be defined."
+  ]) {
+    const phrase = skillText.includes("human-approved") ? "human-approved" : "read-only";
+    const result = evaluateSkill({ skillText, contract: { requiredPhrases: [phrase], minimumFixtures: 0 } });
+    const finding = result.findings.find((item) => item.id === `phrase:${phrase}`);
+
+    assert.equal(finding.status, "fail", skillText);
+    assert.equal(finding.message, `Missing affirmative boundary evidence: ${phrase}`);
+  }
+});
+
+test("accepts representative affirmative boundary prose", () => {
+  for (const [phrase, skillText] of [
+    ["read-only", "Discovery runs in read-only mode and does not modify the repository."],
+    ["human-approved", "Publishing is human-approved before any remote side effect occurs."]
+  ]) {
+    const result = evaluateSkill({ skillText, contract: { requiredPhrases: [phrase], minimumFixtures: 0 } });
+    const finding = result.findings.find((item) => item.id === `phrase:${phrase}`);
+
+    assert.equal(finding.status, "pass", skillText);
+    assert.equal(finding.message, `Affirmative boundary evidence found: ${phrase}`);
+  }
+});
+
+test("cli JSON and Markdown reports rejected boundary claims deterministically", () => {
+  const previousExitCode = process.exitCode;
+  const jsonOutput = run([
+    "--skill", "fixtures/negated-boundaries-skill/SKILL.md",
+    "--contract", "fixtures/contract.json",
+    "--fixtures", "fixtures/sample-skill/fixtures",
+    "--format", "json"
+  ]);
+  process.exitCode = previousExitCode;
+  const result = JSON.parse(jsonOutput);
+  const phraseFinding = result.findings.find((finding) => finding.id === "phrase:read-only");
+
+  assert.equal(phraseFinding.status, "fail");
+  assert.equal(phraseFinding.message, "Missing affirmative boundary evidence: read-only");
+  assert.equal(result.findings.find((finding) => finding.id === "phrase:human-approved").status, "fail");
+  assert.match(renderMarkdown(result), /\| phrase:read-only \| fail \| Missing affirmative boundary evidence: read-only \|/);
+});
+
 test("renders markdown acceptance evidence", () => {
   const result = evaluateSkill({
     skillText: readTextFile("fixtures/sample-skill/SKILL.md"),
@@ -86,7 +134,10 @@ test("cli returns json output", () => {
     "json"
   ]);
 
-  assert.equal(JSON.parse(output).status, "pass");
+  const result = JSON.parse(output);
+  assert.equal(result.status, "pass");
+  assert.equal(result.findings.find((finding) => finding.id === "phrase:read-only").status, "pass");
+  assert.equal(result.findings.find((finding) => finding.id === "phrase:human-approved").status, "pass");
 });
 
 test("cli names options whose values are missing", () => {
