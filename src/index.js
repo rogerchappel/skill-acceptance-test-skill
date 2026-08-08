@@ -89,8 +89,11 @@ function validateContract(contract) {
 
   for (const field of ["requiredSections", "requiredPhrases"]) {
     const value = contract[field];
-    if (value !== undefined && (!Array.isArray(value) || value.some((item) => typeof item !== "string"))) {
-      throw new TypeError(`Invalid contract: ${field} must be an array of strings.`);
+    if (
+      value !== undefined &&
+      (!Array.isArray(value) || value.some((item) => typeof item !== "string" || item.trim().length === 0))
+    ) {
+      throw new TypeError(`Invalid contract: ${field} must be an array of non-empty strings.`);
     }
   }
 
