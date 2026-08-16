@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import test from "node:test";
 import { evaluateSkill, readJsonFile, readTextFile, renderMarkdown } from "../src/index.js";
 import { run } from "../src/cli.js";
@@ -174,6 +177,76 @@ test("strict contracts can raise fixture thresholds", () => {
 
   assert.equal(result.status, "fail");
   assert.match(result.findings.find((finding) => finding.id === "fixtures:minimum").message, /minimum is 3/);
+});
+
+test("accepts level 1-6 ATX headings with closing hashes and CRLF", () => {
+  for (let level = 1; level <= 6; level += 1) {
+    const hashes = "#".repeat(level);
+    const result = evaluateSkill({
+      skillText: `${hashes} Validation ${hashes}\r\n\r\n\`\`\`sh\r\nnpm test\r\n\`\`\`\r\n`,
+      contract: { requiredSections: ["Validation"], minimumFixtures: 0 }
+    });
+
+    assert.equal(result.status, "pass", `expected heading level ${level} to pass`);
+  }
+});
+
+test("accepts matching backtick and tilde fences with sufficiently long closers", () => {
+  for (const skillText of [
+    "## Validation\n````shell\nnpm run check\n`````\n",
+    "## Validation\n~~~sh\nnpm run smoke\n~~~~\n"
+  ]) {
+    const result = evaluateSkill({
+      skillText,
+      contract: { requiredSections: ["Validation"], minimumFixtures: 0 }
+    });
+
+    assert.equal(result.status, "pass");
+  }
+});
+
+test("rejects malformed, empty, and prose-only verification fences", () => {
+  const invalidBlocks = [
+    "```sh\nnpm test\n~~~",
+    "````sh\nnpm test\n```",
+    "```sh\nnpm test",
+    "```sh\n\n```",
+    "```text\nRun npm test before publishing.\n```"
+  ];
+
+  for (const block of invalidBlocks) {
+    const result = evaluateSkill({
+      skillText: `## Validation\n${block}\n`,
+      contract: { requiredSections: ["Validation"], minimumFixtures: 0 }
+    });
+
+    assert.equal(
+      result.findings.find((finding) => finding.id === "evidence:verification-commands").status,
+      "fail"
+    );
+  }
+});
+
+test("cli accepts CRLF headings and tilde-fenced verification commands", () => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "skill-acceptance-test-"));
+  const skillPath = path.join(tempDir, "SKILL.md");
+  const contractPath = path.join(tempDir, "contract.json");
+  const fixtureDir = path.join(tempDir, "fixtures");
+  fs.mkdirSync(fixtureDir);
+  fs.writeFileSync(skillPath, "###### Validation ######\r\n~~~sh\r\nnpm test\r\n~~~\r\n");
+  fs.writeFileSync(contractPath, JSON.stringify({ requiredSections: ["Validation"], minimumFixtures: 0 }));
+
+  try {
+    const output = run([
+      "--skill", skillPath,
+      "--contract", contractPath,
+      "--fixtures", fixtureDir,
+      "--format", "json"
+    ]);
+    assert.equal(JSON.parse(output).status, "pass");
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
 });
 
 test("rejects contract list fields that are not arrays of strings", () => {

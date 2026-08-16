@@ -110,12 +110,41 @@ function escapeMarkdownCell(value) {
 }
 
 function hasHeading(text, heading) {
-  const pattern = new RegExp(`^#{1,3}\\s+${escapeRegExp(heading)}\\s*$`, "im");
+  const pattern = new RegExp(
+    `^ {0,3}#{1,6}[\\t ]+${escapeRegExp(heading)}(?:[\\t ]+#+)?[\\t ]*\\r?$`,
+    "im"
+  );
   return pattern.test(text);
 }
 
 function extractCodeBlocks(text) {
-  return [...text.matchAll(/```[\w-]*\n([\s\S]*?)```/g)].map((match) => match[1]);
+  const lines = text.split(/\r?\n/);
+  const blocks = [];
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const opening = /^ {0,3}(`{3,}|~{3,})([^\r]*)$/.exec(lines[index]);
+    if (!opening) continue;
+
+    const fence = opening[1];
+    const marker = fence[0];
+    const info = opening[2];
+    if (marker === "`" && info.includes("`")) continue;
+
+    const closing = new RegExp(`^ {0,3}${escapeRegExp(marker)}{${fence.length},}[\\t ]*$`);
+    const content = [];
+    let closingIndex = index + 1;
+    while (closingIndex < lines.length && !closing.test(lines[closingIndex])) {
+      content.push(lines[closingIndex]);
+      closingIndex += 1;
+    }
+
+    if (closingIndex < lines.length) {
+      blocks.push(content.join("\n"));
+      index = closingIndex;
+    }
+  }
+
+  return blocks;
 }
 
 function hasVerificationCommand(block) {
