@@ -181,10 +181,21 @@ function listFixtureFiles(fixtureDir) {
   if (!fixtureDir || !fs.existsSync(fixtureDir)) {
     return [];
   }
-  return fs
-    .readdirSync(fixtureDir, { withFileTypes: true })
-    .filter((entry) => entry.isFile())
-    .map((entry) => path.join(fixtureDir, entry.name));
+
+  const files = [];
+  const visit = (directory) => {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      const entryPath = path.join(directory, entry.name);
+      if (entry.isDirectory()) {
+        visit(entryPath);
+      } else if (entry.isFile()) {
+        files.push(path.relative(process.cwd(), entryPath));
+      }
+    }
+  };
+
+  visit(fixtureDir);
+  return files.sort();
 }
 
 function slug(value) {
