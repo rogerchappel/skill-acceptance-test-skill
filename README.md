@@ -14,7 +14,7 @@ node src/cli.js --skill fixtures/sample-skill/SKILL.md --contract fixtures/contr
 
 - Required sections are present in the skill file.
 - Side-effect and approval boundaries are described.
-- The fixture directory contains enough examples for the contract.
+- The fixture directory tree contains enough regular files for the contract; nested happy-path and failure examples count.
 - Verification commands are documented as evidence.
 
 See [docs/CONTRACT.md](docs/CONTRACT.md) for contract fields and [docs/API.md](docs/API.md) for library usage.

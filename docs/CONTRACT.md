@@ -14,7 +14,7 @@
 | --- | --- | --- |
 | `requiredSections` | string array | ATX Markdown headings expected in `SKILL.md` (levels 1-6, with optional closing `#` characters). |
 | `requiredPhrases` | string array | Case-insensitive boundary phrases that must appear as affirmative evidence in skill text. |
-| `minimumFixtures` | non-negative integer | Minimum number of files expected in the fixture directory. Defaults to `1`. |
+| `minimumFixtures` | non-negative integer | Minimum number of regular files expected recursively beneath the fixture directory. Defaults to `1`. |
 
 The contract should be stored with the repo so release checks are reproducible.
 
@@ -31,6 +31,8 @@ opening fence. Empty, unclosed, mismatched, undersized, and prose-only fenced bl
 verification evidence.
 
 Use `fixtures/strict-contract.json` when reviewers want an intentionally stricter fixture threshold.
+Subdirectories may organize fixtures by scenario. Directory entries themselves do not count, and
+reported fixture paths are sorted repository-relative paths so repeated runs are deterministic.
 
 ## Affirmative boundary evidence
 
