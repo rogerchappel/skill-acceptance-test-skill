@@ -27,6 +27,47 @@ test("passes a skill with required sections and fixtures", () => {
   assert.equal(result.status, "pass");
   assert.equal(result.summary.fail, 0);
   assert.equal(result.fixtureFiles.length, 2);
+  assert.deepEqual(result.fixtureFiles, [
+    "fixtures/sample-skill/fixtures/company.json",
+    "fixtures/sample-skill/fixtures/repo.json"
+  ]);
+});
+
+test("counts nested regular fixture files recursively in stable order", () => {
+  const result = evaluateSkill({
+    skillText: readTextFile("fixtures/sample-skill/SKILL.md"),
+    contract,
+    fixtureDir: "fixtures/nested-skill/fixtures"
+  });
+
+  assert.equal(result.status, "pass");
+  assert.deepEqual(result.fixtureFiles, [
+    "fixtures/nested-skill/fixtures/failure/input.json",
+    "fixtures/nested-skill/fixtures/happy/input.json"
+  ]);
+  assert.equal(result.findings.find((finding) => finding.id === "fixtures:minimum").status, "pass");
+});
+
+test("does not count directories toward the fixture minimum", () => {
+  const result = evaluateSkill({
+    skillText: readTextFile("fixtures/sample-skill/SKILL.md"),
+    contract,
+    fixtureDir: "fixtures/broken-skill"
+  });
+
+  assert.equal(result.fixtureFiles.length, 1);
+  assert.equal(result.findings.find((finding) => finding.id === "fixtures:minimum").status, "fail");
+});
+
+test("reports no fixtures for a missing directory", () => {
+  const result = evaluateSkill({
+    skillText: readTextFile("fixtures/sample-skill/SKILL.md"),
+    contract,
+    fixtureDir: "fixtures/does-not-exist"
+  });
+
+  assert.deepEqual(result.fixtureFiles, []);
+  assert.equal(result.findings.find((finding) => finding.id === "fixtures:minimum").status, "fail");
 });
 
 test("fails a skill that omits required release evidence", () => {
