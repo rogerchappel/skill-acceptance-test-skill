@@ -13,9 +13,10 @@ export function evaluateSkill({ skillText, contract, fixtureDir }) {
   validateContract(contract);
   const findings = [];
   const requiredSections = contract.requiredSections ?? [];
+  const proseText = withoutFencedCode(skillText);
 
   for (const section of requiredSections) {
-    const present = hasHeading(skillText, section);
+    const present = hasHeading(proseText, section);
     findings.push({
       id: `section:${slug(section)}`,
       status: present ? "pass" : "fail",
@@ -24,7 +25,7 @@ export function evaluateSkill({ skillText, contract, fixtureDir }) {
   }
 
   for (const check of contract.requiredPhrases ?? []) {
-    const present = hasAffirmativeBoundaryEvidence(skillText, check);
+    const present = hasAffirmativeBoundaryEvidence(proseText, check);
     findings.push({
       id: `phrase:${slug(check)}`,
       status: present ? "pass" : "fail",
@@ -145,6 +146,32 @@ function extractCodeBlocks(text) {
   }
 
   return blocks;
+}
+
+function withoutFencedCode(text) {
+  const lines = text.split(/\r?\n/);
+  const prose = [];
+  let closing = null;
+
+  for (const line of lines) {
+    if (closing) {
+      if (closing.test(line)) closing = null;
+      prose.push("");
+      continue;
+    }
+
+    const opening = /^ {0,3}(`{3,}|~{3,})([^\r]*)$/.exec(line);
+    if (opening && !(opening[1][0] === "`" && opening[2].includes("`"))) {
+      const marker = opening[1][0];
+      closing = new RegExp(`^ {0,3}${escapeRegExp(marker)}{${opening[1].length},}[\\t ]*$`);
+      prose.push("");
+      continue;
+    }
+
+    prose.push(line);
+  }
+
+  return prose.join("\n");
 }
 
 function hasVerificationCommand(block) {

@@ -138,6 +138,49 @@ test("accepts representative affirmative boundary prose", () => {
   }
 });
 
+test("ignores required headings and phrases inside fenced examples", () => {
+  for (const fencedExample of [
+    "```markdown\n## Approval Requirements\nThe workflow is human-approved.\n```",
+    "~~~~markdown\n## Approval Requirements\nThe workflow is human-approved.\n~~~~~~"
+  ]) {
+    const result = evaluateSkill({
+      skillText: `${fencedExample}\n\n\`\`\`sh\nnpm test\n\`\`\``,
+      contract: {
+        requiredSections: ["Approval Requirements"],
+        requiredPhrases: ["human-approved"],
+        minimumFixtures: 0
+      }
+    });
+
+    assert.equal(result.findings.find((finding) => finding.id === "section:approval-requirements").status, "fail");
+    assert.equal(result.findings.find((finding) => finding.id === "phrase:human-approved").status, "fail");
+  }
+});
+
+test("uses prose outside fences when examples contain duplicate evidence", () => {
+  const result = evaluateSkill({
+    skillText: [
+      "````markdown",
+      "## Approval Requirements",
+      "The workflow is human-approved.",
+      "```",
+      "````",
+      "## Approval Requirements",
+      "Publishing remains human-approved at the remote boundary.",
+      "~~~sh",
+      "npm test",
+      "~~~~"
+    ].join("\n"),
+    contract: {
+      requiredSections: ["Approval Requirements"],
+      requiredPhrases: ["human-approved"],
+      minimumFixtures: 0
+    }
+  });
+
+  assert.equal(result.status, "pass");
+});
+
 test("cli JSON and Markdown reports rejected boundary claims deterministically", () => {
   const previousExitCode = process.exitCode;
   const jsonOutput = run([
