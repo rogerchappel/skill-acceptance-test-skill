@@ -38,7 +38,9 @@ reported fixture paths are sorted repository-relative paths so repeated runs are
 
 A required phrase passes only when a sentence or line states that boundary affirmatively. For
 example, `Discovery runs in read-only mode` and `Publishing is human-approved before any remote
-side effect` pass. A substring alone is insufficient: negated claims (`not read-only`, `no
-human-approved step`), missing or absent claims, and placeholders such as `TODO`, `TBD`, or `to be
-documented` fail. The finding identifies the phrase as missing affirmative evidence so authors can
-replace a mention with an explicit operational boundary.
+side effect` pass. Matching is case-insensitive and accepts punctuation around the complete phrase,
+including a hyphenated phrase such as `(READ-ONLY)`. Letters or numbers immediately before or after
+the phrase make it part of a larger token, so `preread-only` and `read-onlyish` do not pass. Negated
+claims (`not read-only`, `no human-approved step`), missing or absent claims, and placeholders such
+as `TODO`, `TBD`, or `to be documented` also fail. The finding identifies the phrase as missing
+affirmative evidence so authors can replace a mention with an explicit operational boundary.
