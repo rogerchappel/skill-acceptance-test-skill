@@ -181,10 +181,10 @@ function hasVerificationCommand(block) {
 }
 
 function hasAffirmativeBoundaryEvidence(text, phrase) {
-  const phrasePattern = escapeRegExp(phrase);
+  const phrasePattern = `(?<![\\p{L}\\p{N}])${escapeRegExp(phrase)}(?![\\p{L}\\p{N}])`;
   const candidates = text
     .split(/\r?\n|(?<=[.!?])\s+/)
-    .filter((candidate) => new RegExp(phrasePattern, "i").test(candidate));
+    .filter((candidate) => new RegExp(phrasePattern, "iu").test(candidate));
 
   return candidates.some((candidate) => {
     const normalized = candidate
@@ -192,12 +192,12 @@ function hasAffirmativeBoundaryEvidence(text, phrase) {
       .trim();
     const placeholder = /^(?:todo|tbd|fixme|placeholder)\b|\b(?:todo|tbd|fixme|placeholder|goes here|to be (?:added|documented|defined))\b/i;
     const negatedBefore = new RegExp(
-      `\\b(?:no|not|never|without|lacks?|missing|omit(?:s|ted)?|does not|do not|isn't|is not|cannot|can't|won't|will not)\\b[^.!?\\n]{0,80}\\b${phrasePattern}\\b`,
-      "i"
+      `\\b(?:no|not|never|without|lacks?|missing|omit(?:s|ted)?|does not|do not|isn't|is not|cannot|can't|won't|will not)\\b[^.!?\\n]{0,80}${phrasePattern}`,
+      "iu"
     );
     const negatedAfter = new RegExp(
-      `\\b${phrasePattern}\\b[^.!?\\n]{0,60}\\b(?:is (?:missing|absent|unsupported|unavailable)|isn't (?:present|supported|available)|is not (?:present|supported|available))\\b`,
-      "i"
+      `${phrasePattern}[^.!?\\n]{0,60}\\b(?:is (?:missing|absent|unsupported|unavailable)|isn't (?:present|supported|available)|is not (?:present|supported|available))\\b`,
+      "iu"
     );
 
     return !placeholder.test(normalized) && !negatedBefore.test(normalized) && !negatedAfter.test(normalized);
