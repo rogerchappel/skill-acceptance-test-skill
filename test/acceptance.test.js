@@ -138,6 +138,31 @@ test("accepts representative affirmative boundary prose", () => {
   }
 });
 
+test("requires complete token boundaries around required phrases", () => {
+  for (const skillText of [
+    "The process is read-onlyish.",
+    "The preread-only mode is available.",
+    "The step is human-approvedness.",
+    "The prehuman-approved step is available."
+  ]) {
+    const phrase = skillText.includes("human-approved") ? "human-approved" : "read-only";
+    const result = evaluateSkill({ skillText, contract: { requiredPhrases: [phrase], minimumFixtures: 0 } });
+
+    assert.equal(result.findings.find((finding) => finding.id === `phrase:${phrase}`).status, "fail", skillText);
+  }
+});
+
+test("accepts required phrases next to punctuation and with different casing", () => {
+  for (const [phrase, skillText] of [
+    ["read-only", "The mode is (READ-ONLY)."],
+    ["human-approved", "The release remains human-approved, always."]
+  ]) {
+    const result = evaluateSkill({ skillText, contract: { requiredPhrases: [phrase], minimumFixtures: 0 } });
+
+    assert.equal(result.findings.find((finding) => finding.id === `phrase:${phrase}`).status, "pass", skillText);
+  }
+});
+
 test("ignores required headings and phrases inside fenced examples", () => {
   for (const fencedExample of [
     "```markdown\n## Approval Requirements\nThe workflow is human-approved.\n```",
@@ -197,6 +222,31 @@ test("cli JSON and Markdown reports rejected boundary claims deterministically",
   assert.equal(phraseFinding.message, "Missing affirmative boundary evidence: read-only");
   assert.equal(result.findings.find((finding) => finding.id === "phrase:human-approved").status, "fail");
   assert.match(renderMarkdown(result), /\| phrase:read-only \| fail \| Missing affirmative boundary evidence: read-only \|/);
+});
+
+test("cli rejects a required phrase embedded in a larger word", () => {
+  const temporaryDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "skill-acceptance-boundary-"));
+  const skillPath = path.join(temporaryDirectory, "SKILL.md");
+  const contractPath = path.join(temporaryDirectory, "contract.json");
+  const fixturesPath = path.join(temporaryDirectory, "fixtures");
+  fs.mkdirSync(fixturesPath);
+  fs.writeFileSync(path.join(fixturesPath, "case.json"), "{}\n");
+  fs.writeFileSync(skillPath, "The process is read-onlyish.\n\n```sh\nnpm test\n```\n");
+  fs.writeFileSync(contractPath, `${JSON.stringify({ requiredPhrases: ["read-only"] })}\n`);
+
+  const previousExitCode = process.exitCode;
+  try {
+    const output = run([
+      "--skill", skillPath,
+      "--contract", contractPath,
+      "--fixtures", fixturesPath,
+      "--format", "json"
+    ]);
+    assert.equal(JSON.parse(output).findings.find((finding) => finding.id === "phrase:read-only").status, "fail");
+  } finally {
+    process.exitCode = previousExitCode;
+    fs.rmSync(temporaryDirectory, { recursive: true, force: true });
+  }
 });
 
 test("renders markdown acceptance evidence", () => {
