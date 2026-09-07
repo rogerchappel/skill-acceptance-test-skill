@@ -19,6 +19,18 @@ Clarify whether the skill is read-only, what it must not execute, and which acti
 
 Add representative fixtures that cover happy path, edge case, and blocked or failing behavior.
 
+## Invalid Contract Fields
+
+Only `requiredSections`, `requiredPhrases`, and `minimumFixtures` are supported. Unknown keys,
+including near-miss spellings such as `minimumFixture`, stop evaluation with an `Invalid contract:`
+error and CLI exit code `1`. Correct the field name rather than relying on a default value.
+
+## Invalid Fixture Directory
+
+A missing fixture path is treated as an empty fixture set. If the path exists, it must be a
+directory; a regular file produces `Invalid fixture directory: expected a directory: <path>.` and
+CLI exit code `1`. The tool does not expose the platform-specific `scandir` error.
+
 ## Missing Verification Evidence
 
 Document a supported command (`npm test`, `npm run check`, `npm run smoke`, or

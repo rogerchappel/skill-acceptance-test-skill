@@ -23,6 +23,8 @@ Contracts are validated before any acceptance checks run. The contract must be a
 Empty or whitespace-only entries are invalid. In addition,
 `minimumFixtures`, when present, must be a non-negative integer. Invalid contracts stop the CLI
 with exit code `1` and an `Invalid contract: ...` error instead of producing a report.
+These three fields are the complete contract schema. Unknown fields are rejected, so a typo such
+as `minimumFixture` cannot silently fall back to the default fixture threshold.
 
 Required-section matching accepts LF and CRLF line endings. Verification-command evidence must be
 an executable command on its own line inside a closed backtick or tilde fence of at least three
@@ -35,6 +37,9 @@ Subdirectories may organize fixtures by scenario. Directory entries themselves d
 reported fixture paths are sorted relative to the declared fixture directory itself. For example,
 `<fixtureDir>/happy/input.json` is reported as `happy/input.json`, regardless of the process working
 directory, so repeated runs are deterministic.
+The fixture path may be absent, which represents an empty fixture set, but an existing path must be
+a directory. Passing a regular file stops the CLI with exit code `1` and an `Invalid fixture
+directory: ...` diagnostic.
 
 ## Affirmative boundary evidence
 
