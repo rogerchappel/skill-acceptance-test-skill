@@ -5,8 +5,8 @@
     "fail": 0
   },
   "fixtureFiles": [
-    "fixtures/sample-skill/fixtures/company.json",
-    "fixtures/sample-skill/fixtures/repo.json"
+    "company.json",
+    "repo.json"
   ],
   "findings": [
     {
