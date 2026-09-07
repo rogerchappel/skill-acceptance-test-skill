@@ -88,6 +88,13 @@ function validateContract(contract) {
     throw new TypeError("Invalid contract: expected a JSON object.");
   }
 
+  const supportedFields = new Set(["requiredSections", "requiredPhrases", "minimumFixtures"]);
+  const unknownFields = Object.keys(contract).filter((field) => !supportedFields.has(field)).sort();
+  if (unknownFields.length > 0) {
+    const label = unknownFields.length === 1 ? "field" : "fields";
+    throw new TypeError(`Invalid contract: unknown ${label}: ${unknownFields.join(", ")}.`);
+  }
+
   for (const field of ["requiredSections", "requiredPhrases"]) {
     const value = contract[field];
     if (
@@ -207,6 +214,10 @@ function hasAffirmativeBoundaryEvidence(text, phrase) {
 function listFixtureFiles(fixtureDir) {
   if (!fixtureDir || !fs.existsSync(fixtureDir)) {
     return [];
+  }
+
+  if (!fs.statSync(fixtureDir).isDirectory()) {
+    throw new TypeError(`Invalid fixture directory: expected a directory: ${fixtureDir}.`);
   }
 
   const fixtureRoot = path.resolve(fixtureDir);
