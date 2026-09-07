@@ -464,6 +464,31 @@ test("rejects invalid minimumFixtures values without numeric coercion", () => {
   }
 });
 
+test("rejects unknown contract fields", () => {
+  for (const invalidContract of [
+    { minimumFixture: 2 },
+    { requiredSections: [], unexpected: true }
+  ]) {
+    assert.throws(
+      () => evaluateSkill({ skillText: "", contract: invalidContract }),
+      /Invalid contract: unknown field(?:s)?: /
+    );
+  }
+});
+
+test("accepts every documented contract field", () => {
+  assert.doesNotThrow(() =>
+    evaluateSkill({
+      skillText: "## Validation\nThe workflow is read-only.\n",
+      contract: {
+        requiredSections: ["Validation"],
+        requiredPhrases: ["read-only"],
+        minimumFixtures: 0
+      }
+    })
+  );
+});
+
 test("cli reports malformed contracts with an actionable error", () => {
   assert.throws(
     () =>
@@ -498,6 +523,65 @@ test("cli exits with an actionable error for blank contract entries", () => {
     result.stderr,
     "Invalid contract: requiredPhrases must be an array of non-empty strings.\n"
   );
+});
+
+test("cli exits with an actionable error for typoed contract fields", () => {
+  const temporaryDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "skill-acceptance-contract-"));
+  const contractPath = path.join(temporaryDirectory, "contract.json");
+  fs.writeFileSync(contractPath, `${JSON.stringify({ minimumFixture: 2 })}\n`);
+
+  try {
+    const result = spawnSync(
+      process.execPath,
+      [
+        "src/cli.js",
+        "--skill", "fixtures/sample-skill/SKILL.md",
+        "--contract", contractPath,
+        "--fixtures", "fixtures/sample-skill/fixtures"
+      ],
+      { encoding: "utf8" }
+    );
+
+    assert.equal(result.status, 1);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "Invalid contract: unknown field: minimumFixture.\n");
+  } finally {
+    fs.rmSync(temporaryDirectory, { recursive: true, force: true });
+  }
+});
+
+test("rejects a file-valued fixture path with a deterministic library error", () => {
+  assert.throws(
+    () =>
+      evaluateSkill({
+        skillText: "",
+        contract: { minimumFixtures: 0 },
+        fixtureDir: "fixtures/contract.json"
+      }),
+    (error) => {
+      assert.equal(error.message, "Invalid fixture directory: expected a directory: fixtures/contract.json.");
+      assert.doesNotMatch(error.message, /ENOTDIR|scandir/);
+      return true;
+    }
+  );
+});
+
+test("cli rejects a file-valued fixture path without leaking scandir errors", () => {
+  const result = spawnSync(
+    process.execPath,
+    [
+      "src/cli.js",
+      "--skill", "fixtures/sample-skill/SKILL.md",
+      "--contract", "fixtures/contract.json",
+      "--fixtures", "fixtures/contract.json"
+    ],
+    { encoding: "utf8" }
+  );
+
+  assert.equal(result.status, 1);
+  assert.equal(result.stdout, "");
+  assert.equal(result.stderr, "Invalid fixture directory: expected a directory: fixtures/contract.json.\n");
+  assert.doesNotMatch(result.stderr, /ENOTDIR|scandir/);
 });
 
 test("escapes markdown table delimiters and newlines without changing JSON findings", () => {
