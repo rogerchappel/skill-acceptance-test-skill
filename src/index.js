@@ -209,6 +209,7 @@ function listFixtureFiles(fixtureDir) {
     return [];
   }
 
+  const fixtureRoot = path.resolve(fixtureDir);
   const files = [];
   const visit = (directory) => {
     for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
@@ -216,12 +217,12 @@ function listFixtureFiles(fixtureDir) {
       if (entry.isDirectory()) {
         visit(entryPath);
       } else if (entry.isFile()) {
-        files.push(path.relative(process.cwd(), entryPath));
+        files.push(path.relative(fixtureRoot, entryPath));
       }
     }
   };
 
-  visit(fixtureDir);
+  visit(fixtureRoot);
   return files.sort();
 }
 

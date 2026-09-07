@@ -32,7 +32,9 @@ verification evidence.
 
 Use `fixtures/strict-contract.json` when reviewers want an intentionally stricter fixture threshold.
 Subdirectories may organize fixtures by scenario. Directory entries themselves do not count, and
-reported fixture paths are sorted repository-relative paths so repeated runs are deterministic.
+reported fixture paths are sorted relative to the declared fixture directory itself. For example,
+`<fixtureDir>/happy/input.json` is reported as `happy/input.json`, regardless of the process working
+directory, so repeated runs are deterministic.
 
 ## Affirmative boundary evidence
 

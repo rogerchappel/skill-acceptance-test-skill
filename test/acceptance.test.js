@@ -28,8 +28,8 @@ test("passes a skill with required sections and fixtures", () => {
   assert.equal(result.summary.fail, 0);
   assert.equal(result.fixtureFiles.length, 2);
   assert.deepEqual(result.fixtureFiles, [
-    "fixtures/sample-skill/fixtures/company.json",
-    "fixtures/sample-skill/fixtures/repo.json"
+    "company.json",
+    "repo.json"
   ]);
 });
 
@@ -42,8 +42,8 @@ test("counts nested regular fixture files recursively in stable order", () => {
 
   assert.equal(result.status, "pass");
   assert.deepEqual(result.fixtureFiles, [
-    "fixtures/nested-skill/fixtures/failure/input.json",
-    "fixtures/nested-skill/fixtures/happy/input.json"
+    "failure/input.json",
+    "happy/input.json"
   ]);
   assert.equal(result.findings.find((finding) => finding.id === "fixtures:minimum").status, "pass");
 });
@@ -276,6 +276,50 @@ test("cli returns json output", () => {
   assert.equal(result.status, "pass");
   assert.equal(result.findings.find((finding) => finding.id === "phrase:read-only").status, "pass");
   assert.equal(result.findings.find((finding) => finding.id === "phrase:human-approved").status, "pass");
+});
+
+test("library fixture paths are stable across working directories", () => {
+  const repositoryDirectory = process.cwd();
+  const script = `
+    import { evaluateSkill, readJsonFile, readTextFile } from ${JSON.stringify(path.join(repositoryDirectory, "src/index.js"))};
+    const result = evaluateSkill({
+      skillText: readTextFile(${JSON.stringify(path.join(repositoryDirectory, "fixtures/sample-skill/SKILL.md"))}),
+      contract: readJsonFile(${JSON.stringify(path.join(repositoryDirectory, "fixtures/contract.json"))}),
+      fixtureDir: ${JSON.stringify(path.join(repositoryDirectory, "fixtures/nested-skill/fixtures"))}
+    });
+    process.stdout.write(JSON.stringify(result.fixtureFiles));
+  `;
+  const fromRepository = spawnSync(process.execPath, ["--input-type=module", "--eval", script], {
+    cwd: repositoryDirectory,
+    encoding: "utf8"
+  });
+  const fromTemporaryDirectory = spawnSync(process.execPath, ["--input-type=module", "--eval", script], {
+    cwd: os.tmpdir(),
+    encoding: "utf8"
+  });
+
+  assert.equal(fromRepository.status, 0, fromRepository.stderr);
+  assert.equal(fromTemporaryDirectory.status, 0, fromTemporaryDirectory.stderr);
+  assert.equal(fromRepository.stdout, fromTemporaryDirectory.stdout);
+  assert.deepEqual(JSON.parse(fromRepository.stdout), ["failure/input.json", "happy/input.json"]);
+});
+
+test("cli fixture paths are stable across working directories", () => {
+  const repositoryDirectory = process.cwd();
+  const args = [
+    path.join(repositoryDirectory, "src/cli.js"),
+    "--skill", path.join(repositoryDirectory, "fixtures/sample-skill/SKILL.md"),
+    "--contract", path.join(repositoryDirectory, "fixtures/contract.json"),
+    "--fixtures", path.join(repositoryDirectory, "fixtures/nested-skill/fixtures"),
+    "--format", "json"
+  ];
+  const fromRepository = spawnSync(process.execPath, args, { cwd: repositoryDirectory, encoding: "utf8" });
+  const fromTemporaryDirectory = spawnSync(process.execPath, args, { cwd: os.tmpdir(), encoding: "utf8" });
+
+  assert.equal(fromRepository.status, 0, fromRepository.stderr);
+  assert.equal(fromTemporaryDirectory.status, 0, fromTemporaryDirectory.stderr);
+  assert.deepEqual(JSON.parse(fromRepository.stdout), JSON.parse(fromTemporaryDirectory.stdout));
+  assert.deepEqual(JSON.parse(fromRepository.stdout).fixtureFiles, ["failure/input.json", "happy/input.json"]);
 });
 
 test("cli names options whose values are missing", () => {
