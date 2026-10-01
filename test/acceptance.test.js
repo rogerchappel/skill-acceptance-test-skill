@@ -13,6 +13,7 @@ test("README installs from a checkout instead of the unpublished registry packag
   const readme = readTextFile("README.md");
 
   assert.doesNotMatch(readme, /npm install skill-acceptance-test-skill/);
+  assert.match(readme, /npm ci/);
   assert.match(readme, /git clone https:\/\/github\.com\/rogerchappel\/skill-acceptance-test-skill\.git/);
   assert.match(readme, /npx --no-install skill-acceptance-test --help/);
 });
