@@ -25,13 +25,13 @@ This tool reads files and directories only. It does not execute commands found i
 
 ## Install
 
-The package is not published to the npm registry. Install dependencies and run
+The package is not published to the npm registry. Install the locked dependencies and run
 the CLI from a checked-out copy of this repository:
 
 ```bash
 git clone https://github.com/rogerchappel/skill-acceptance-test-skill.git
 cd skill-acceptance-test-skill
-npm install
+npm ci
 npx --no-install skill-acceptance-test --help
 npx --no-install skill-acceptance-test \
   --skill fixtures/sample-skill/SKILL.md \
